@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Text.Encodings.Web;
+using Microsoft.Extensions.Logging;
 using SerienStreamAPI.Enums;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -17,7 +18,8 @@ public static class TestData
 
         serializerOptions = new()
         {
-            WriteIndented = true
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
@@ -39,7 +41,7 @@ public static class TestData
         logger.Log(level, "\n{message}:\n\t{readableResults}", message, JsonSerializer.Serialize(@object, serializerOptions));
 
 
-    public static readonly string HostUrl = "https://186.2.175.5/";
+    public static readonly string HostUrl = "http://186.2.175.5/";
 
     public static readonly string Site = "serie";
 
@@ -48,7 +50,7 @@ public static class TestData
     public static readonly string FFmpegLocation = @"C:\Program Files\FFmpeg\FFmpeg.exe";
 
 
-    public static readonly string Title = "1000 wege ins gras zu beissen";
+    public static readonly string Title = "The Rookie";
 
     public static readonly int Season = 1;
 
@@ -60,7 +62,7 @@ public static class TestData
     public static readonly string RedirectId = "2531389";
 
 
-    public static readonly string VoeVideoUrl = "https://jilliandescribecompany.com/e/gqkpodlzndc6";
+    public static readonly string VoeVideoUrl = "https://lauradaydo.com/e/khd0rbysw7qr";
 
     public static readonly string StreamtapeVideoUrl = "https://streamtape.com/v/lARoV4B6vps7kbg/unknown_replay_2025.05.29-11.32.mp4";
 
