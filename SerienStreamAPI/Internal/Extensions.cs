@@ -3,6 +3,7 @@ using SerienStreamAPI.Enums;
 using SerienStreamAPI.Models;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SerienStreamAPI.Internal;
 
@@ -59,7 +60,7 @@ internal static class Extensions
 
     public static int ToInt32(
         this string text) =>
-        int.Parse(text, NumberStyles.Integer, CultureInfo.InvariantCulture);
+        int.Parse(text, NumberStyles.Integer | NumberStyles.AllowThousands, CultureInfo.InvariantCulture);
     
     public static double ToDouble(
         this string text) =>
@@ -93,10 +94,17 @@ internal static class Extensions
     public static MediaLanguage ToMediaLanguage(
         this string text)
     {
-        if (text.Length < 15)
+        text = text.Trim();
+        
+        string language;
+        if (text.StartsWith("#icon-flag-")) // new-style: href: "#icon-flag-german"
+            language = text["#icon-flag-".Length..];
+        else if (text.StartsWith("/storage/flags/")) // old-style: src: "/storage/flags/german.svg"
+            language = text["/storage/flags/".Length..^".svg".Length];
+        else
             return new(Language.Unknown, null);
-
-        string[] languageData = text[11..^4].Split('-', StringSplitOptions.RemoveEmptyEntries);
+        
+        string[] languageData = language.Split('-', StringSplitOptions.RemoveEmptyEntries);
         return languageData.Length switch
         {
             1 => new(languageData[0].ToLanguage(), null),
@@ -106,9 +114,22 @@ internal static class Extensions
     }
 
 
+    public static string Match(
+        this string text,
+        string pattern,
+        int group)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return "";
+
+        Match match = Regex.Match(text, pattern);
+        return match.Success ? match.Groups[group].Value.Trim() : "";
+    }
+
+    
     public static string GetInnerText(
         this HtmlNode? node) =>
-        node?.InnerText.Trim('/') ?? string.Empty;
+        node?.InnerText.Trim('/').Trim() ?? string.Empty;
 
     public static string GetAttributeValue(
         this HtmlNode? node,

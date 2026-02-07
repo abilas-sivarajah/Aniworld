@@ -18,14 +18,14 @@ public class SerienStreamClient
     public SerienStreamClient(
         string hostUrl,
         string site,
-        bool ignoreCerficiateValidation = false,
+        bool ignoreCertificiateValidation = false,
         ILogger<SerienStreamClient>? logger = null)
     {
         this.hostUrl = hostUrl;
         this.site = site;
         this.logger = logger;
 
-        this.requestHelper = new(ignoreCerficiateValidation, logger);
+        this.requestHelper = new(ignoreCertificiateValidation, logger);
 
         logger?.LogInformation("[SerienStreamClient-.ctor] SerienStreamClient has been inizialized.");
     }
@@ -58,29 +58,25 @@ public class SerienStreamClient
         // Parse HTML document into series info
         logger?.LogInformation("[SerienStreamClient-GetSeriesAsync] Parsing HTML document into series info: {title}...", title);
 
-        string endYearText = root.SelectSingleNodeText("//span[@itemprop='endDate']/a");
-        bool hasMovies = root.SelectSingleNodeTextOrDefault("//div[@id='stream']//ul[1]/li[2]/a") == "Filme";
+        string endYearText = root.SelectSingleNodeText("//p[contains(@class,'text-muted')]/span[1]");
 
         return new Series(
-            title: root.SelectSingleNodeText("//div[@class='series-title']/h1"),
-            description: root.SelectSingleNodeAttribute("//p[@class='seri_des']", "data-full-description"),
-            bannerUrl: hostUrl.AddRelativePath(root.SelectSingleNodeAttribute("//div[@class='seriesCoverBox']//img", "data-src")),
-            yearStart: root.SelectSingleNodeText("//span[@itemprop='startDate']/a").ToInt32(),
-            yearEnd: endYearText == "Heute" ? null : endYearText.ToInt32(),
-            directors: root.Select("//li[@itemprop='director']//span[@itemprop='name']", Extensions.GetInnerText),
-            actors: root.Select("//li[@itemprop='actor']//span[@itemprop='name']", Extensions.GetInnerText),
-            creators: root.Select("//li[@itemprop='creator']//span[@itemprop='name']", Extensions.GetInnerText),
-            countriesOfOrigin: root.Select("//li[@itemprop='countryOfOrigin']//span[@itemprop='name']", Extensions.GetInnerText),
-            genres: root.Select("//div[@class='genres']//li/a[@itemprop='genre']", Extensions.GetInnerText),
-            ageRating: root.SelectSingleNodeAttribute("//div[contains(@class, 'fsk')]", "data-fsk").ToInt32(),
-            rating: new Rating(
-                root.SelectSingleNodeText("//div[@itemprop='aggregateRating']//span[@itemprop='ratingValue']").ToInt32(),
-                root.SelectSingleNodeText("//div[@itemprop='aggregateRating']//span[@itemprop='bestRating']").ToInt32(),
-                root.SelectSingleNodeText("//div[@itemprop='aggregateRating']//span[@itemprop='ratingCount']").ToInt32()),
-            imdbUrl: root.SelectSingleNodeAttributeOrDefault("//a[@class='imdb-link']", "href"),
-            trailerUrl: root.SelectSingleNodeAttributeOrDefault("//div[@itemprop='trailer']//a[@itemprop='url']", "href"),
-            hasMovies: hasMovies,
-            seasonsCount: root.SelectSingleNodeAttribute("//meta[@itemprop='numberOfSeasons']", "content").ToInt32() - hasMovies.ToInt32());
+            title: root.SelectSingleNodeText("//div[contains(@class,'row')]//h1"),
+            description: root.SelectSingleNodeText("//div[contains(@class,'series-description')]//span[@class='description-text']"),
+            bannerUrl: hostUrl.AddRelativePath(root.SelectSingleNodeAttribute("//div[contains(@class,'col-12') and contains(@class,'col-md-9')]//picture//img", "data-src")),
+            yearStart: root.SelectSingleNodeText("//p[contains(@class,'text-muted')]/a[1]").ToInt32(),
+            yearEnd: endYearText == "NA" ? null : endYearText.ToInt32(),
+            directors: root.Select("//li[strong[contains(text(),'Regisseur')]]//a", Extensions.GetInnerText),
+            actors: root.Select("//li[strong[contains(text(),'Besetzung')]]//a", Extensions.GetInnerText),
+            creators: root.Select("//li[strong[contains(text(),'Produzent')]]//a", Extensions.GetInnerText),
+            countriesOfOrigin: root.Select("//li[strong[contains(text(),'Land')]]//a", Extensions.GetInnerText),
+            genres: root.Select("//li[strong[contains(text(),'Genre')]]//a", Extensions.GetInnerText),
+            ageRating: root.SelectSingleNodeText("//p[contains(.,'FSK')]").Match(@"FSK (\d+)", 1).ToInt32(),
+            ratingsCount: root.SelectSingleNodeText("//span[contains(text(),'Bewertungen')]").Match(@"([\d|\.|\,]+) Bewertungen", 1).ToInt32(),
+            imdbUrl: root.SelectSingleNodeAttributeOrDefault("//a[contains(@href,'imdb.com')]", "href"),
+            trailerUrl: root.SelectSingleNodeAttributeOrDefault("//button[@data-trailer-url]", "data-trailer-url"),
+            hasMovies: root.Any("//nav[@id='season-nav']//ul/li/a[normalize-space(text())='Filme']"),
+            seasonsCount: root.Select("//nav[@id='season-nav']//ul/li/a[normalize-space(text()) != 'Filme']", n => n).Length);
     }
 
 
@@ -100,12 +96,12 @@ public class SerienStreamClient
         // Parse HTML document into series info
         logger?.LogInformation("[SerienStreamClient-GetEpisodesAsync] Parsing HTML document into media info list: {title}, {season}...", title, season);
 
-        return root.Select("//table[@class='seasonEpisodesList']//tbody//tr", node => new Media(
-            number: node.SelectSingleNodeText(".//td[1]//a")[6..].ToInt32(),
-            title: node.SelectSingleNodeText(".//td[2]/a/strong"),
-            originalTitle: node.SelectSingleNodeText(".//td[2]/a/span"),
-            hosters: node.Select(".//td[3]//i", childNode => childNode.GetAttributeValue("title").ToHoster()),
-            languages: node.Select(".//td[4]//img", childNode => childNode.GetAttributeValue("src").ToMediaLanguage())));
+        return root.Select("//section[contains(@class,'episode-section')]//tbody//tr[contains(@class,'episode-row')]", node => new Media(
+            number: node.SelectSingleNodeText(".//th[contains(@class,'episode-number-cell')]").ToInt32(),
+            title: node.SelectSingleNodeText(".//td[contains(@class,'episode-title-cell')]//strong"),
+            originalTitle: node.SelectSingleNodeText(".//td[contains(@class,'episode-title-cell')]//span"),
+            hosters: node.Select(".//td[contains(@class,'episode-watch-cell')]//img", childNode => childNode.GetAttributeValue("alt").ToHoster()),
+            languages: node.Select(".//td[contains(@class,'episode-language-cell')]//svg//use", childNode => childNode.GetAttributeValue("href").ToMediaLanguage())));
     }
 
     public Task<Media[]> GetMoviesAsync(
@@ -123,29 +119,22 @@ public class SerienStreamClient
         // Get HTML doucment
         HtmlNode root = await GetHtmlRootAsync($"{site}/stream/{title.ToRelativePath()}/staffel-{season}/episode-{number}", cancellationToken);
 
-        if (root.ChildNodes.Count == 0)
-            throw season == 0 ? new MovieNotFoundException(title, number) : new EpisodeNotFoundException(title, season, number);
-        if (root.Any("//div[contains(@class, 'messageAlert danger')]"))
-            throw new SeriesNotFoundException(title);
-        if (!root.Any("//div[contains(@class, 'hosterSiteDirectNav')]"))
-            throw new SeasonNotFoundException(title, season);
-
         // Parse HTML document into series info
         logger?.LogInformation("[SerienStreamClient-GetEpisodeVideoInfoAsync] Parsing HTML document into video info: {title}, {number}, {season}...", title, number, season);
 
-        Dictionary<int, MediaLanguage> languageMapping = root.Map("//div[@class='changeLanguageBox']//img", node => (
-            node.GetAttributeValue("data-lang-key").ToInt32(),
-            node.GetAttributeValue("src").ToMediaLanguage()));
-
+        string fullTitle = root.SelectSingleNodeText("//article/h2[@class='h4 mb-1']")["S00E00:".Length..].Trim();
+        string currentInfo = root.SelectSingleNodeText("//div[@class='small mx-2']/span/strong");
+        
         return new VideoDetails(
-            number: root.SelectSingleNodeText("//ul/li/a[@class='active' and @data-episode-id]").ToInt32(),
-            title: root.SelectSingleNodeText("//div[@class='hosterSiteTitle']/h2/span[@class='episodeGermanTitle']"),
-            originalTitle: root.SelectSingleNodeText("//div[@class='hosterSiteTitle']/h2/small[@class='episodeEnglishTitle']"),
-            description: root.SelectSingleNodeText("//div[@class='hosterSiteTitle']/p[@itemprop='description']"),
-            streams: root.Select("//ul[@class='row']/li", node => new VideoStream(
-                videoUrl: hostUrl.AddRelativePath(node.SelectSingleNodeAttribute(".//a[@class='watchEpisode']", "href")),
-                hoster: node.SelectSingleNodeText(".//h4").ToHoster(),
-                language: languageMapping.GetValueOrDefault(node.GetAttributeValue("data-lang-key").ToInt32(), new(Language.Unknown, null)))));
+            number: currentInfo.Match(@"E(\d+)", 1).ToInt32(),
+            season: currentInfo.Contains("S00") ? null : currentInfo.Match(@"E(\d+)", 1).ToInt32(),
+            title: fullTitle.Match(@"(.*?)(?:\s*\(([^()]*)\))?\s*$", 1),
+            originalTitle: fullTitle.Match(@"(.*?)(?:\s*\(([^()]*)\))?\s*$", 2),
+            description: root.SelectSingleNodeText("//div[starts-with(@id,'desc-')]/div"),
+            streams: root.Select("//div[@id='episode-links']//button[contains(@class,'link-box')]", node => new VideoStream(
+                videoUrl: hostUrl.AddRelativePath(node.GetAttributeValue("data-play-url")),
+                hoster: node.GetAttributeValue("data-provider-name").ToHoster(),
+                language: node.SelectSingleNodeAttribute(".//use", "href").ToMediaLanguage())));
     }
 
     public Task<VideoDetails> GetMovieVideoInfoAsync(

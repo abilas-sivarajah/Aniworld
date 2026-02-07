@@ -47,10 +47,10 @@ public static class TestData
 
     public static readonly bool IgnoreCerficiateValidation = true;
 
-    public static readonly string FFmpegLocation = @"C:\Program Files\FFmpeg\FFmpeg.exe";
+    public static readonly string FFmpegLocation = @"ffmpeg";
 
 
-    public static readonly string Title = "The Rookie";
+    public static readonly string Title = "Seishun Buta Yarou wa Bunny Girl Senpai no Yume o Minai";
 
     public static readonly int Season = 1;
 
@@ -62,7 +62,7 @@ public static class TestData
     public static readonly string RedirectId = "2531389";
 
 
-    public static readonly string VoeVideoUrl = "https://lauradaydo.com/e/khd0rbysw7qr";
+    public static readonly string VoeVideoUrl = "http://186.2.175.5/r?t=eyJpdiI6IjlhMG1WTGt1eE9mKzhPSXowdFRQWGc9PSIsInZhbHVlIjoiL1RuRk94cThvTXd6amNVVEk0YW9ud3NoVU5ac3JKd2tvMzlaV1JzTVE1cmxCY0oyTHFRUmdmN3ZpYzEwSjBSanZEdjMyNnIrYXFPSG5XQ0ZsZHdud3c9PSIsIm1hYyI6IjkxNzU4OTNlY2ZhMmIzMDZjOTcxMDkxODVjNTY4ZTJhYTZlMDBhZGEyMjczYWM4YzJlZmRkZmRmNGI1ZDMzZTkiLCJ0YWciOiIifQ%3D%3D";
 
     public static readonly string StreamtapeVideoUrl = "https://streamtape.com/v/lARoV4B6vps7kbg/unknown_replay_2025.05.29-11.32.mp4";
 
@@ -71,9 +71,9 @@ public static class TestData
     public static readonly string VidozaVideoUrl = "https://186.2.175.5/redirect/17839891";
 
 
-    public static readonly string StreamUrl = "https://dk543xi.cloudatacdn.com/u5kj6fyftdblsdgge6v4oii6ijflfjhlbpogpdiws3dxy7ierpsotjjh7zvq/8z38fy1vou~6nVCoTP03T?token=210791274-37-201-1751629562-312c9a6b1a19d6495fc08e659de749f6/mwom8zu9w6doto0gldcj2jxq&expiry=1751629592907";
+    public static readonly string StreamUrl = "https://cdn-qkvhbkc92hdjoa6i.edgeon-bandwidth.com/engine/hls2-c/01/00645/d8vqxu6cbq5j_,n,.urlset/master.m3u8?t=uGsJsezWf7AzQgKDmg6A1bZg8P6ISR7CKaEzL3P23g8&s=1770489840&e=14400&f=3225660&node=n8EHxmjUCaQI0GMbkyuEnOHLVaFEQYXrRRHc++IWY5Q=&i=83.135&sp=2500&asn=8881&q=n&rq=a0eNocUDod88Qop7Q2NlBGAcuwIaNco4SQ0J5HpN";
 
-    public static readonly string FilePath = @$"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\test.mp4";
+    public static readonly string FilePath = @$"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}/test.mp4";
 
     public static readonly (string key, string value)[]? Headers = [("Referer", DoodstreamVideoUrl)]; //[("Referer", DoodstreamVideoUrl)]; // Header requirered when downloading stream from doodstream
 

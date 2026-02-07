@@ -12,7 +12,7 @@ public class Series(
     string[] countriesOfOrigin,
     string[] genres,
     int ageRating,
-    Rating rating,
+    int ratingsCount,
     string? imdbUrl,
     string? trailerUrl,
     bool hasMovies,
@@ -40,7 +40,7 @@ public class Series(
 
     public int AgeRating { get; } = ageRating;
 
-    public Rating Rating { get; } = rating;
+    public int RatingsCount { get; } = ratingsCount;
 
     public string? ImdbUrl { get; } = imdbUrl;
 
