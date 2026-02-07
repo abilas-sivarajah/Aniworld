@@ -14,15 +14,16 @@ internal class RequestHelper
     /// <summary>
     /// Creates a new request helper with extendended logging functions
     /// </summary>
+    /// <param name="ignoreCertificiateValidation">If the host URL is marked as “unsafe”, this will bypass SSL certificate verification</param>
     /// <param name="logger">The optional logger used for logging</param>
     public RequestHelper(
-        bool ignoreCerficiateValidation = false,
+        bool ignoreCertificiateValidation = false,
         ILogger? logger = null)
     {
         this.logger = logger;
 
         HttpClientHandler handler = new();
-        if (ignoreCerficiateValidation)
+        if (ignoreCertificiateValidation)
             handler.ServerCertificateCustomValidationCallback += (s, cert, chain, errors) => true;
         httpClient = new(handler);
         httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
@@ -32,11 +33,11 @@ internal class RequestHelper
 
 
     /// <summary>
-    /// Sends a new GET request to the given uri with the parameters
+    /// Sends a new GET request to the given uri with the headers
     /// </summary>
     /// <param name="url">The uri the request should be made to</param>
     /// <param name="path">The relatvie path of the request url</param>
-    /// <param name="parameters">The query parameters which should be added</param>
+    /// <param name="headers">The query headers which should be added</param>
     /// <param name="cancellationToken">The cancellation token to cancel the action</param>
     /// <exception cref="System.InvalidOperationException">May occurs when sending the web request fails</exception>
     /// <exception cref="System.Net.Http.HttpRequestException">May occurs when sending the web request fails</exception>
@@ -66,11 +67,11 @@ internal class RequestHelper
     }
 
     /// <summary>
-    /// Sends a new GET request to the given uri with the parameters and validates it
+    /// Sends a new GET request to the given uri with the headers and validates it
     /// </summary>
     /// <param name="uri">The uri the request should be made to</param>
     /// <param name="path">The relatvie path of the request url</param>
-    /// <param name="parameters">The query parameters which should be added</param>
+    /// <param name="headers">The query headers which should be added</param>
     /// <param name="cancellationToken">The cancellation token to cancel the action</param>
     /// <exception cref="System.InvalidOperationException">May occurs when sending the web request fails</exception>
     /// <exception cref="System.Net.Http.HttpRequestException">May occurs when sending the web request fails</exception>
