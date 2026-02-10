@@ -62,7 +62,7 @@ public static class TestData
     public static readonly string RedirectId = "2531389";
 
 
-    public static readonly string VoeVideoUrl = "http://186.2.175.5/r?t=eyJpdiI6IjlhMG1WTGt1eE9mKzhPSXowdFRQWGc9PSIsInZhbHVlIjoiL1RuRk94cThvTXd6amNVVEk0YW9ud3NoVU5ac3JKd2tvMzlaV1JzTVE1cmxCY0oyTHFRUmdmN3ZpYzEwSjBSanZEdjMyNnIrYXFPSG5XQ0ZsZHdud3c9PSIsIm1hYyI6IjkxNzU4OTNlY2ZhMmIzMDZjOTcxMDkxODVjNTY4ZTJhYTZlMDBhZGEyMjczYWM4YzJlZmRkZmRmNGI1ZDMzZTkiLCJ0YWciOiIifQ%3D%3D";
+    public static readonly string VoeVideoUrl = "http://186.2.175.5/r?t=eyJpdiI6Im5DWERTeEVUb1o2NkkvS25tZ3lzUmc9PSIsInZhbHVlIjoiQ2tlLzJOUEl5ZGUxSU5LdkVZZHZvTFZrZXRHbVhScUR4SW81WkxvLzZtTXRrYWp4eHRRNXVjQ2FuY2tkRTVZWS9TbExoQjVWRkZMZUoxd2VlSHBTSFE9PSIsIm1hYyI6ImNlZTQwYjg0YzM5NGI4OTBiNzM3YzYyZjdkMzgzODdmZGU4NmIwYWViNGQ5MGNmYzg0ZjBjM2Q3MjhiZThjMTQiLCJ0YWciOiIifQ%3D%3D";
 
     public static readonly string StreamtapeVideoUrl = "https://streamtape.com/v/lARoV4B6vps7kbg/unknown_replay_2025.05.29-11.32.mp4";
 
@@ -71,8 +71,8 @@ public static class TestData
     public static readonly string VidozaVideoUrl = "https://186.2.175.5/redirect/17839891";
 
 
-    public static readonly string StreamUrl = "https://cdn-qkvhbkc92hdjoa6i.edgeon-bandwidth.com/engine/hls2-c/01/00645/d8vqxu6cbq5j_,n,.urlset/master.m3u8?t=uGsJsezWf7AzQgKDmg6A1bZg8P6ISR7CKaEzL3P23g8&s=1770489840&e=14400&f=3225660&node=n8EHxmjUCaQI0GMbkyuEnOHLVaFEQYXrRRHc++IWY5Q=&i=83.135&sp=2500&asn=8881&q=n&rq=a0eNocUDod88Qop7Q2NlBGAcuwIaNco4SQ0J5HpN";
-
+    public static readonly string StreamUrl = "https://cdn-lkvxgheee2fzfh03.edgeon-bandwidth.com/engine/hls2/01/00645/d8vqxu6cbq5j_,n,.urlset/master.m3u8?t=GXiyHcbfL9y6790J1-4AAMOM5VTf_vUIQj_gu9L65DQ&s=1770749263&e=14400&f=3225660&node=n8EHxmjUCaQI0GMbkyuEnOHLVaFEQYXrRRHc++IWY5Q=&i=169.150&sp=2500&asn=212238&q=n&rq=jUHMqelEbJhMNiLnCF9pK5zaxXehBohUKAnG9al9";
+        
     public static readonly string FilePath = @$"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}/test.mp4";
 
     public static readonly (string key, string value)[]? Headers = [("Referer", DoodstreamVideoUrl)]; //[("Referer", DoodstreamVideoUrl)]; // Header requirered when downloading stream from doodstream

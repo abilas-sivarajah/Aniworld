@@ -30,7 +30,16 @@ public partial class DownloadClient
     [GeneratedRegex(@"/pass_md5/([^/]+/[^']+)")]
     private static partial Regex DoodstreamPassMd5Regex();
     
-    [GeneratedRegex(@"frame=\s*(\d+)\s+fps=\s*([\d.]+)\s*q=\s*(-?[\d.]+)\s+size=\s*(\d+)\s*kB\s+time=\s*([\d:.]+)\s+bitrate=\s*([\d.]+)kbits/s(?:\s+[\w=]+)*\s+speed=\s*([\d.]+)x")]
+    [GeneratedRegex(
+        @"frame=\s*(\d+).*?" +
+        @"fps=\s*([\d.]+).*?" +
+        @"q=\s*(-?[\d.]+).*?" +
+        @"size=\s*(\d+)\s*(?:kB|KiB|MB|MiB|GB|GiB).*?" +
+        @"time=\s*([\d:.]+).*?" +
+        @"bitrate=\s*([\d.]+)\s*(?:kbits|Mbits)/s.*?" +
+        @"speed=\s*([\d.]+)x",
+        RegexOptions.Singleline
+    )]
     private static partial Regex FFmpegEncodingProgressRegex();
 
 
