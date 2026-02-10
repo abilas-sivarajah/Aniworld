@@ -50,7 +50,7 @@ public class SerienStreamClient
         CancellationToken cancellationToken = default)
     {
         // Get HTML doucment
-        HtmlNode root = await GetHtmlRootAsync($"{site}/stream/{title.ToRelativePath()}", cancellationToken);
+        HtmlNode root = await GetHtmlRootAsync($"{site}/{title.ToRelativePath()}", cancellationToken);
 
         if (root.Any("//div[contains(@class, 'messageAlert danger')]"))
             throw new SeriesNotFoundException(title);
@@ -86,7 +86,7 @@ public class SerienStreamClient
         CancellationToken cancellationToken = default)
     {
         // Get HTML doucment
-        HtmlNode root = await GetHtmlRootAsync($"{site}/stream/{title.ToRelativePath()}/staffel-{season}", cancellationToken);
+        HtmlNode root = await GetHtmlRootAsync($"{site}/{title.ToRelativePath()}/staffel-{season}", cancellationToken);
 
         if (root.ChildNodes.Count == 0)
             return season == 0 ? [] : throw new SeasonNotFoundException(title, season);
@@ -117,7 +117,7 @@ public class SerienStreamClient
         CancellationToken cancellationToken = default)
     {
         // Get HTML doucment
-        HtmlNode root = await GetHtmlRootAsync($"{site}/stream/{title.ToRelativePath()}/staffel-{season}/episode-{number}", cancellationToken);
+        HtmlNode root = await GetHtmlRootAsync($"{site}/{title.ToRelativePath()}/staffel-{season}/episode-{number}", cancellationToken);
 
         // Parse HTML document into series info
         logger?.LogInformation("[SerienStreamClient-GetEpisodeVideoInfoAsync] Parsing HTML document into video info: {title}, {number}, {season}...", title, number, season);
