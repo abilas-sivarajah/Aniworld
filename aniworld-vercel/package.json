@@ -1,0 +1,27 @@
+{
+  "name": "aniworld-vercel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AniWorld / SerienStream WebApp — Next.js port deployable on Vercel",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "hls.js": "^1.5.20",
+    "next": "^15.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "undici": "^7.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "tsx": "^4.23.1",
+    "typescript": "^5.7.3"
+  }
+}
