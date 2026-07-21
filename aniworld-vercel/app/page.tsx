@@ -354,34 +354,6 @@ export default function Home() {
     }
   }, []);
 
-  // Resolve the hoster embed URL and play it in an iframe — streams directly
-  // from the hoster to the user (nothing runs through Vercel).
-  const openInPlayer = useCallback(
-    async (stream: VideoStream, setBusy: (b: boolean) => void) => {
-      setBusy(true);
-      try {
-        const res = await fetch(
-          `/api/resolve?url=${encodeURIComponent(stream.videoUrl)}`,
-        );
-        const data = await res.json();
-        const embedUrl: string = data.embedUrl || stream.videoUrl;
-        setExtractedUrl(null);
-        if (hlsRef.current) {
-          hlsRef.current.destroy();
-          hlsRef.current = null;
-        }
-        setIframeUrl(embedUrl);
-      } catch {
-        // Fall back to iframing the redirect link directly.
-        setExtractedUrl(null);
-        setIframeUrl(stream.videoUrl);
-      } finally {
-        setBusy(false);
-      }
-    },
-    [],
-  );
-
   const playStream = useCallback(async (url: string) => {
     setIframeUrl(null);
     setExtractedUrl(url);
@@ -410,6 +382,53 @@ export default function Home() {
     video.src = url;
     video.play().catch(() => undefined);
   }, []);
+
+  // Resolve the hoster embed URL and play it in an iframe — streams directly
+  // from the hoster to the user (nothing runs through Vercel).
+  const openInPlayer = useCallback(
+    async (stream: VideoStream, setBusy: (b: boolean) => void) => {
+      setBusy(true);
+      try {
+        // Try direct clean HLS extraction first (0-ads, 0-popups)
+        const extractRes = await fetch("/api/extract-stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            videoUrl: stream.videoUrl,
+            hoster: stream.hoster,
+          }),
+        });
+        const extractData = await extractRes.json();
+        if (extractRes.ok && extractData.streamUrl) {
+          await playStream(extractData.streamUrl);
+          return;
+        }
+      } catch {
+        /* Fall back to iframe if direct extraction fails */
+      }
+
+      try {
+        const res = await fetch(
+          `/api/resolve?url=${encodeURIComponent(stream.videoUrl)}`,
+        );
+        const data = await res.json();
+        const embedUrl: string = data.embedUrl || stream.videoUrl;
+        setExtractedUrl(null);
+        if (hlsRef.current) {
+          hlsRef.current.destroy();
+          hlsRef.current = null;
+        }
+        setIframeUrl(embedUrl);
+      } catch {
+        // Fall back to iframing the redirect link directly.
+        setExtractedUrl(null);
+        setIframeUrl(stream.videoUrl);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [playStream],
+  );
 
   const extractStream = useCallback(
     async (stream: VideoStream, setBusy: (b: boolean) => void) => {
