@@ -861,7 +861,9 @@ document.addEventListener('DOMContentLoaded', () => {
             videoPlayer.play().catch(e => console.log("Auto-play prevented", e));
         }
 
-        extractedStreamBox.scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => {
+            extractedStreamBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
     }
 
     // UI Helpers

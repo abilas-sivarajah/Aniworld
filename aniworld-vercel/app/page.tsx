@@ -878,6 +878,16 @@ function VideoModal({
   onOpenInPlayer: (stream: VideoStream, setBusy: (b: boolean) => void) => void;
   onCopy: () => void;
 }) {
+  const playerBoxRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if ((iframeUrl || extractedUrl) && playerBoxRef.current) {
+      setTimeout(() => {
+        playerBoxRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+    }
+  }, [iframeUrl, extractedUrl]);
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -935,7 +945,7 @@ function VideoModal({
               </div>
 
               {iframeUrl && (
-                <div className="extracted-stream-box">
+                <div className="extracted-stream-box" ref={playerBoxRef}>
                   <div className="stream-box-header">
                     <span className="stream-box-title">
                       <i className="fa-solid fa-tv"></i> Direkt-Player (Hoster)
@@ -976,7 +986,7 @@ function VideoModal({
               )}
 
               {extractedUrl && (
-                <div className="extracted-stream-box">
+                <div className="extracted-stream-box" ref={playerBoxRef}>
                   <div className="stream-box-header">
                     <span className="stream-box-title">
                       <i className="fa-solid fa-bolt"></i> Direkt-Stream
