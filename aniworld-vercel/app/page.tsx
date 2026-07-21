@@ -977,7 +977,6 @@ function VideoModal({
                   <div className="player-container">
                     <iframe
                       src={iframeUrl}
-                      sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
                       allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
                       allowFullScreen
                       referrerPolicy="no-referrer"
