@@ -12,9 +12,11 @@
   "dependencies": {
     "cheerio": "^1.0.0",
     "hls.js": "^1.5.20",
+    "https-proxy-agent": "^9.1.0",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "socks-proxy-agent": "^10.1.0",
     "undici": "^7.3.0"
   },
   "devDependencies": {

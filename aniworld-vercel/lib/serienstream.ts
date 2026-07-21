@@ -72,13 +72,23 @@ export class SerienStreamClient {
     private readonly hostUrl: string,
     private readonly site: string,
     private readonly ignoreCertificateValidation: boolean = false,
+    private readonly useProxy: boolean = false,
+    private readonly proxyRegion: string = "none",
+    private readonly proxyUrl: string = "",
   ) {}
+
+  private get requestOptions() {
+    return {
+      ignoreCertificateValidation: this.ignoreCertificateValidation,
+      useProxy: this.useProxy,
+      proxyRegion: this.proxyRegion,
+      proxyUrl: this.proxyUrl,
+    };
+  }
 
   private async getRoot(path: string): Promise<{ $: CheerioAPI; html: string }> {
     const url = addRelativePath(this.hostUrl, path);
-    const html = await getAndValidate(url, {
-      ignoreCertificateValidation: this.ignoreCertificateValidation,
-    });
+    const html = await getAndValidate(url, this.requestOptions);
     return { $: cheerio.load(html), html };
   }
 
@@ -442,7 +452,7 @@ export class SerienStreamClient {
       const response = await postForm(
         addRelativePath(this.hostUrl, "ajax/search"),
         { keyword },
-        { ignoreCertificateValidation: this.ignoreCertificateValidation },
+        this.requestOptions,
       );
       if (!response.ok) return [];
 

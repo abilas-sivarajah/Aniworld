@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PRESET_PROXY_REGIONS } from "@/lib/proxy-types";
 import type {
   AppConfig,
   Media,
@@ -25,6 +26,9 @@ const DEFAULT_CONFIG: AppConfig = {
   site: "anime",
   ignoreCertificateValidation: false,
   passwordHashSHA256: "",
+  useProxy: false,
+  proxyRegion: "none",
+  proxyUrl: "",
 };
 
 const ANIME_SUGGESTIONS = [
@@ -1199,6 +1203,9 @@ function SettingsModal({
     config.ignoreCertificateValidation,
   );
   const [passwordHash, setPasswordHash] = useState(config.passwordHashSHA256);
+  const [useProxy, setUseProxy] = useState(config.useProxy ?? false);
+  const [proxyRegion, setProxyRegion] = useState(config.proxyRegion ?? "none");
+  const [proxyUrl, setProxyUrl] = useState(config.proxyUrl ?? "");
   const [addQuickBtn, setAddQuickBtn] = useState(false);
 
   const [customPresets, setCustomPresets] = useState<
@@ -1280,6 +1287,9 @@ function SettingsModal({
               site,
               ignoreCertificateValidation: ignoreCert,
               passwordHashSHA256: passwordHash.trim(),
+              useProxy,
+              proxyRegion,
+              proxyUrl: proxyUrl.trim(),
             });
           }}
         >
@@ -1374,6 +1384,59 @@ function SettingsModal({
                   unsichere Host-URLs)
                 </span>
               </label>
+            </div>
+
+            {/* VPN / Ausländisches Proxy-Routing */}
+            <div style={{ margin: "1.25rem 0", padding: "1rem", background: "rgba(255,255,255,0.03)", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)" }}>
+              <h4 style={{ margin: "0 0 0.75rem 0", fontSize: "0.95rem", color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <i className="fa-solid fa-globe"></i> Ausländischer VPN &amp; Proxy Server
+              </h4>
+              
+              <div className="form-group checkbox-group" style={{ marginBottom: "0.75rem" }}>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={useProxy}
+                    onChange={(e) => setUseProxy(e.target.checked)}
+                  />
+                  <span>Ausländisches Routing / VPN aktivieren (für HLS-Proxy &amp; Stream-Scraper)</span>
+                </label>
+              </div>
+
+              {useProxy && (
+                <>
+                  <div className="form-group">
+                    <label htmlFor="proxyRegionSelect">Standort / Ausländischer Server-Knoten</label>
+                    <select
+                      id="proxyRegionSelect"
+                      value={proxyRegion}
+                      onChange={(e) => setProxyRegion(e.target.value)}
+                    >
+                      {PRESET_PROXY_REGIONS.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.flag} {r.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {(proxyRegion === "custom" || proxyUrl.length > 0) && (
+                    <div className="form-group" style={{ marginTop: "0.75rem" }}>
+                      <label htmlFor="proxyUrlInput">Proxy URL (HTTP/HTTPS oder SOCKS5)</label>
+                      <input
+                        id="proxyUrlInput"
+                        type="text"
+                        placeholder="http://user:pass@us-proxy.com:8080 oder socks5://127.0.0.1:1080"
+                        value={proxyUrl}
+                        onChange={(e) => setProxyUrl(e.target.value)}
+                      />
+                      <small className="form-help">
+                        Format: http://[user:pass@]host:port oder socks5://[user:pass@]host:port
+                      </small>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="form-group">

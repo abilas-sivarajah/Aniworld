@@ -16,6 +16,9 @@ export function defaultConfig(): AppConfig {
     site: process.env.DEFAULT_SITE || "anime",
     ignoreCertificateValidation: process.env.IGNORE_CERT === "true",
     passwordHashSHA256: process.env.PASSWORD_HASH_SHA256 || "",
+    useProxy: process.env.USE_PROXY === "true",
+    proxyRegion: process.env.DEFAULT_PROXY_REGION || "none",
+    proxyUrl: process.env.DEFAULT_PROXY_URL || "",
   });
 }
 
@@ -35,6 +38,9 @@ export function normalizeConfig(input: Partial<AppConfig>): AppConfig {
     site,
     ignoreCertificateValidation: Boolean(input.ignoreCertificateValidation),
     passwordHashSHA256: (input.passwordHashSHA256 ?? "").trim(),
+    useProxy: Boolean(input.useProxy),
+    proxyRegion: (input.proxyRegion ?? "none").trim(),
+    proxyUrl: (input.proxyUrl ?? "").trim(),
   };
 }
 
@@ -65,5 +71,8 @@ export function makeClient(config: AppConfig): SerienStreamClient {
     config.hostUrl,
     normalizeSite(config.site),
     config.ignoreCertificateValidation,
+    config.useProxy,
+    config.proxyRegion,
+    config.proxyUrl,
   );
 }

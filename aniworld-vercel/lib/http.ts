@@ -2,6 +2,7 @@
 // Uses the runtime's fetch (undici under the hood). When certificate validation
 // should be ignored, requests are dispatched through an insecure undici Agent.
 import { Agent } from "undici";
+import { getProxyDispatcher, resolveProxyUrl } from "./proxy";
 
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
@@ -17,6 +18,9 @@ function getInsecureAgent(): Agent {
 export interface RequestOptions {
   headers?: Record<string, string>;
   ignoreCertificateValidation?: boolean;
+  useProxy?: boolean;
+  proxyRegion?: string;
+  proxyUrl?: string;
 }
 
 function buildInit(
@@ -27,10 +31,20 @@ function buildInit(
     "User-Agent": USER_AGENT,
     ...(options?.headers ?? {}),
   };
-  const finalInit: RequestInit & { dispatcher?: Agent } = {
+  const finalInit: RequestInit & { dispatcher?: any } = {
     ...init,
     headers: { ...headers, ...(init.headers as Record<string, string>) },
   };
+
+  if (options?.useProxy || options?.proxyUrl || (options?.proxyRegion && options.proxyRegion !== "none")) {
+    const pUrl = resolveProxyUrl(options.proxyRegion, options.proxyUrl);
+    const proxyDispatcher = getProxyDispatcher(pUrl, Boolean(options.ignoreCertificateValidation));
+    if (proxyDispatcher) {
+      finalInit.dispatcher = proxyDispatcher;
+      return finalInit as RequestInit;
+    }
+  }
+
   if (options?.ignoreCertificateValidation) {
     finalInit.dispatcher = getInsecureAgent();
   }

@@ -64,4 +64,7 @@ export interface AppConfig {
   site: string;
   ignoreCertificateValidation: boolean;
   passwordHashSHA256: string;
+  useProxy?: boolean;
+  proxyRegion?: string;
+  proxyUrl?: string;
 }

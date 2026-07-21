@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readConfig } from "@/lib/config";
+import { getProxyDispatcher, resolveProxyUrl } from "@/lib/proxy";
 
 // Streams a hoster HLS manifest / media segments (or a plain video file) through
 // the Vercel backend. This is what makes the extracted "Direkt-Stream" actually
@@ -85,6 +87,7 @@ export async function OPTIONS() {
 }
 
 export async function GET(req: NextRequest) {
+  const config = readConfig(req);
   const { searchParams } = new URL(req.url);
   const target = searchParams.get("url");
   const referer = searchParams.get("ref");
@@ -123,13 +126,27 @@ export async function GET(req: NextRequest) {
   const range = req.headers.get("range");
   if (range) upstreamHeaders["Range"] = range;
 
+  const fetchInit: RequestInit & { dispatcher?: any } = {
+    method: "GET",
+    headers: upstreamHeaders,
+    redirect: "follow",
+  };
+
+  const pRegion = searchParams.get("proxyRegion") || config.proxyRegion;
+  const pUrlInput = searchParams.get("proxyUrl") || config.proxyUrl;
+  const useProxy = searchParams.get("useProxy") === "true" || config.useProxy;
+
+  if (useProxy || pUrlInput || (pRegion && pRegion !== "none")) {
+    const resolvedUrl = resolveProxyUrl(pRegion, pUrlInput);
+    const dispatcher = getProxyDispatcher(resolvedUrl, config.ignoreCertificateValidation);
+    if (dispatcher) {
+      fetchInit.dispatcher = dispatcher;
+    }
+  }
+
   let upstream: Response;
   try {
-    upstream = await fetch(targetUrl.toString(), {
-      method: "GET",
-      headers: upstreamHeaders,
-      redirect: "follow",
-    });
+    upstream = await fetch(targetUrl.toString(), fetchInit);
   } catch (err) {
     return NextResponse.json(
       {
