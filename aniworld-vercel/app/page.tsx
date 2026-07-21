@@ -12,18 +12,30 @@ import type {
 } from "@/lib/types";
 
 const DEFAULT_CONFIG: AppConfig = {
-  hostUrl: "https://s.to/",
-  site: "serie",
+  hostUrl: "https://aniworld.to/",
+  site: "anime",
   ignoreCertificateValidation: false,
   passwordHashSHA256: "",
 };
 
-const QUICK_TITLES = [
-  "My Dress-Up Darling",
-  "Attack on Titan",
-  "Demon Slayer",
+const ANIME_SUGGESTIONS = [
+  "Solo Leveling",
   "One Piece",
+  "Demon Slayer",
+  "Attack on Titan",
+  "Jujutsu Kaisen",
+  "My Dress-Up Darling",
+  "Naruto Shippuden",
+];
+
+const SERIES_SUGGESTIONS = [
   "Breaking Bad",
+  "Game of Thrones",
+  "Stranger Things",
+  "The Walking Dead",
+  "House of the Dragon",
+  "Prison Break",
+  "Suits",
 ];
 
 async function sha256Hex(str: string): Promise<string> {
@@ -507,7 +519,10 @@ export default function Home() {
 
             <div className="quick-tags">
               <span className="tag-label">Vorschläge:</span>
-              {QUICK_TITLES.map((title) => (
+              {(config.site === "anime" || (config.hostUrl && config.hostUrl.includes("aniworld"))
+                ? ANIME_SUGGESTIONS
+                : SERIES_SUGGESTIONS
+              ).map((title) => (
                 <button
                   key={title}
                   className="quick-chip"

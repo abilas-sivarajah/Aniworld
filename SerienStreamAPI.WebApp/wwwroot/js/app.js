@@ -14,7 +14,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const searchForm = document.getElementById('searchForm');
     const searchInput = document.getElementById('searchInput');
-    const quickChips = document.querySelectorAll('.quick-chip');
+    const quickChipsWrapper = document.getElementById('quickChipsWrapper');
+
+    const ANIME_SUGGESTIONS = [
+        'Solo Leveling',
+        'One Piece',
+        'Demon Slayer',
+        'Attack on Titan',
+        'Jujutsu Kaisen',
+        'My Dress-Up Darling',
+        'Naruto Shippuden'
+    ];
+
+    const SERIES_SUGGESTIONS = [
+        'Breaking Bad',
+        'Game of Thrones',
+        'Stranger Things',
+        'The Walking Dead',
+        'House of the Dragon',
+        'Prison Break',
+        'Suits'
+    ];
     
     const loadingState = document.getElementById('loadingState');
     const loadingText = document.getElementById('loadingText');
@@ -501,6 +521,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function renderQuickSuggestions() {
+        if (!quickChipsWrapper) return;
+        quickChipsWrapper.innerHTML = '';
+
+        const isAnime = config.site === 'anime' || (config.hostUrl && config.hostUrl.includes('aniworld'));
+        const suggestions = isAnime ? ANIME_SUGGESTIONS : SERIES_SUGGESTIONS;
+
+        suggestions.forEach(title => {
+            const btn = document.createElement('button');
+            btn.className = 'quick-chip';
+            btn.dataset.title = title;
+            btn.textContent = title;
+            btn.addEventListener('click', () => {
+                searchInput.value = title;
+                searchSeries(title);
+            });
+            quickChipsWrapper.appendChild(btn);
+        });
+    }
+
     function updateConfigUI() {
         activeHostUrl.textContent = config.hostUrl;
         currentSiteBadge.textContent = config.site;
@@ -515,6 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 logoutBtn.classList.add('hidden');
             }
         }
+        renderQuickSuggestions();
     }
 
     function openSettings() {
