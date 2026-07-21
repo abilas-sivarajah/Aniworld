@@ -225,8 +225,16 @@ document.addEventListener('DOMContentLoaded', () => {
         searchResultsSection.classList.remove('hidden');
         searchResultsSection.scrollIntoView({ behavior: 'smooth' });
     }
+    function clearPreviousView() {
+        if (seriesCard) seriesCard.classList.add('hidden');
+        if (episodesSection) episodesSection.classList.add('hidden');
+        if (searchResultsSection) searchResultsSection.classList.add('hidden');
+        currentSeries = null;
+    }
+
     async function performSearch(query) {
         if (!query) return;
+        clearPreviousView();
         hideSearchDropdown();
         showLoading(`Suche nach "${query}"...`);
         try {
@@ -577,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Series Search
     async function searchSeries(title) {
         hideError();
-        seriesCard.classList.add('hidden');
+        clearPreviousView();
         showLoading(`Suche nach "${title}" auf ${config.hostUrl}...`);
 
         try {

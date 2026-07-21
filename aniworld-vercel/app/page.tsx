@@ -256,6 +256,9 @@ export default function Home() {
     async (query: string) => {
       setDropdownOpen(false);
       setSearchQuery(query);
+      setSeries(null);
+      setEpisodes([]);
+      setSearchResults(null);
       if (!query.trim()) return;
 
       setLoading(`Suche nach "${query}"...`);
