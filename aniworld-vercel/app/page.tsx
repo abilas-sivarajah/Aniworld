@@ -38,6 +38,14 @@ const SERIES_SUGGESTIONS = [
   "Suits",
 ];
 
+function stripHtmlTags(str: string): string {
+  if (!str) return "";
+  return str.replace(/<[^>]*>/g, "").replace(/&#\d+;/g, (match) => {
+    const code = parseInt(match.replace(/[&#;]/g, ""), 10);
+    return String.fromCharCode(code);
+  });
+}
+
 async function sha256Hex(str: string): Promise<string> {
   if (!str) return "";
   const buffer = new TextEncoder().encode(str);
@@ -244,32 +252,40 @@ export default function Home() {
     [config.hostUrl, loadSeason, fetchConfig],
   );
 
+  const performQuery = useCallback(
+    async (query: string) => {
+      setDropdownOpen(false);
+      setSearchQuery(query);
+      if (!query.trim()) return;
+
+      setLoading(`Suche nach "${query}"...`);
+      try {
+        const res = await fetch(`/api/search?keyword=${encodeURIComponent(query)}`);
+        if (res.ok) {
+          const results: SearchResultItem[] = await res.json();
+          if (results && results.length > 1) {
+            setLoading(null);
+            setSearchResults(results);
+            return;
+          }
+          if (results && results.length === 1) {
+            const clean = stripHtmlTags(results[0].title);
+            setSearchQuery(clean);
+            await searchSeries(clean);
+            return;
+          }
+        }
+      } catch {
+        /* fall through */
+      }
+      await searchSeries(query);
+    },
+    [searchSeries],
+  );
+
   const onSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setDropdownOpen(false);
-    const query = searchQuery.trim();
-    if (!query) return;
-
-    setLoading(`Suche nach "${query}"...`);
-    try {
-      const res = await fetch(`/api/search?keyword=${encodeURIComponent(query)}`);
-      if (res.ok) {
-        const results: SearchResultItem[] = await res.json();
-        if (results && results.length > 1) {
-          setLoading(null);
-          setSearchResults(results);
-          return;
-        }
-        if (results && results.length === 1) {
-          setSearchQuery(results[0].title);
-          await searchSeries(results[0].title);
-          return;
-        }
-      }
-    } catch {
-      /* fall through */
-    }
-    await searchSeries(query);
+    await performQuery(searchQuery.trim());
   };
 
   // ---- Settings ----
@@ -526,10 +542,7 @@ export default function Home() {
                 <button
                   key={title}
                   className="quick-chip"
-                  onClick={() => {
-                    setSearchQuery(title);
-                    searchSeries(title);
-                  }}
+                  onClick={() => performQuery(title)}
                 >
                   {title}
                 </button>

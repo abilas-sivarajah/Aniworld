@@ -225,14 +225,9 @@ document.addEventListener('DOMContentLoaded', () => {
         searchResultsSection.classList.remove('hidden');
         searchResultsSection.scrollIntoView({ behavior: 'smooth' });
     }
-
-    // Search Form Handlers
-    searchForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        hideSearchDropdown();
-        const query = searchInput.value.trim();
+    async function performSearch(query) {
         if (!query) return;
-
+        hideSearchDropdown();
         showLoading(`Suche nach "${query}"...`);
         try {
             const res = await fetch(`/api/search?keyword=${encodeURIComponent(query)}`);
@@ -243,21 +238,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderSearchResultsGrid(results, query);
                     return;
                 } else if (results && results.length === 1) {
-                    searchSeries(results[0].title);
+                    const cleanTitle = stripHtmlTags(results[0].title);
+                    searchInput.value = cleanTitle;
+                    await searchSeries(cleanTitle);
                     return;
                 }
             }
-        } catch {}
+            await searchSeries(query);
+        } catch (err) {
+            await searchSeries(query);
+        }
+    }
 
-        searchSeries(query);
-    });
-
-    quickChips.forEach(chip => {
-        chip.addEventListener('click', () => {
-            const title = chip.dataset.title;
-            searchInput.value = title;
-            searchSeries(title);
-        });
+    // Search Form Handlers
+    searchForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const query = searchInput.value.trim();
+        await performSearch(query);
     });
 
     // Quick URL Preset Elements
@@ -535,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.textContent = title;
             btn.addEventListener('click', () => {
                 searchInput.value = title;
-                searchSeries(title);
+                performSearch(title);
             });
             quickChipsWrapper.appendChild(btn);
         });
