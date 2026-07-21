@@ -9,9 +9,5 @@ packages/
 *.user
 _ReSharper.*
 
-
-SerienStreamAPI/bin/
-SerienStreamAPI/obj/
-
-SerienStreamAPI.Tests/bin/
-SerienStreamAPI.Tests/obj/
+[bB]in/
+[oO]bj/

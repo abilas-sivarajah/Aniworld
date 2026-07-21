@@ -1,4 +1,4 @@
-﻿using HtmlAgilityPack;
+using HtmlAgilityPack;
 using SerienStreamAPI.Enums;
 using SerienStreamAPI.Models;
 using System.Globalization;
@@ -59,8 +59,9 @@ internal static class Extensions
         boolean ? 1 : 0;
 
     public static int ToInt32(
-        this string text) =>
-        int.Parse(text, NumberStyles.Integer | NumberStyles.AllowThousands, CultureInfo.InvariantCulture);
+        this string? text,
+        int defaultValue = 0) =>
+        int.TryParse(text, NumberStyles.Integer | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out int result) ? result : defaultValue;
     
     public static double ToDouble(
         this string text) =>
@@ -99,8 +100,17 @@ internal static class Extensions
         string language;
         if (text.StartsWith("#icon-flag-")) // new-style: href: "#icon-flag-german"
             language = text["#icon-flag-".Length..];
-        else if (text.StartsWith("/storage/flags/")) // old-style: src: "/storage/flags/german.svg"
-            language = text["/storage/flags/".Length..^".svg".Length];
+        else if (text.Contains("/flags/"))
+        {
+            int idx = text.LastIndexOf("/flags/");
+            language = text[(idx + "/flags/".Length)..];
+            if (language.EndsWith(".svg")) language = language[..^".svg".Length];
+        }
+        else if (text.EndsWith(".svg"))
+        {
+            int idx = text.LastIndexOf('/');
+            language = idx >= 0 ? text[(idx + 1)..^".svg".Length] : text[..^".svg".Length];
+        }
         else
             return new(Language.Unknown, null);
         

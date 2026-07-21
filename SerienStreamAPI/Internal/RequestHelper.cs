@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace SerienStreamAPI.Internal;
 
@@ -63,6 +63,31 @@ internal class RequestHelper
                 request.Headers.Add(key, value);
 
         logger?.LogInformation("[RequestHelper-GetAsync] Sending HTTP reuqest. GET: {url}.", url);
+        return httpClient.SendAsync(request, cancellationToken);
+    }
+
+    public Task<HttpResponseMessage> PostFormAsync(
+        string url,
+        string? path = null,
+        IEnumerable<KeyValuePair<string, string>>? formData = null,
+        (string key, string value)[]? headers = null,
+        CancellationToken cancellationToken = default)
+    {
+        UriBuilder builder = new(url);
+        if (path is not null)
+            builder.Path = path;
+
+        HttpRequestMessage request = new()
+        {
+            Method = HttpMethod.Post,
+            RequestUri = builder.Uri,
+            Content = formData is not null ? new FormUrlEncodedContent(formData) : null
+        };
+        if (headers is not null)
+            foreach ((string key, string value) in headers)
+                request.Headers.Add(key, value);
+
+        logger?.LogInformation("[RequestHelper-PostFormAsync] Sending HTTP request. POST: {url}.", url);
         return httpClient.SendAsync(request, cancellationToken);
     }
 

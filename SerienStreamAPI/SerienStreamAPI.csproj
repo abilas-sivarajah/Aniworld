@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -8,16 +8,16 @@
 		<AssemblyVersion>1.1.1</AssemblyVersion>
 		<FileVersion>1.1.1</FileVersion>
 
-		<Title>SerienStream/AniWorld API</Title>
+		<Title>SerienStream/TESTURL API</Title>
 		<Authors>IcySnex</Authors>
 		<Company />
-		<Description>API to search &amp; download series/anime from s.to/aniworld.to</Description>
+		<Description>API to search &amp; download series/anime from s.to/TESTURL.to</Description>
 		<PackageProjectUrl>https://github.com/IcySnex/SerienStreamAPI</PackageProjectUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<RepositoryUrl>https://github.com/IcySnex/SerienStreamAPI/tree/main</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageTags>scraper;series;anime,serienstream;aniworld;downloading</PackageTags>
+		<PackageTags>scraper;series;anime,serienstream;TESTURL;downloading</PackageTags>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
