@@ -356,7 +356,7 @@ export default function Home() {
 
   const playStream = useCallback(async (url: string) => {
     setIframeUrl(null);
-    setExtractedUrl(url);
+    setExtractedUrl(url); // keep the real url for display / "URL kopieren"
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
@@ -366,11 +366,16 @@ export default function Home() {
     const video = videoRef.current;
     if (!video) return;
 
+    // Play through the backend proxy: the hoster CDN blocks the browser via
+    // CORS / Referer and the signed token was minted for the backend, so a
+    // direct load fails. The proxy re-fetches server-side and adds CORS headers.
+    const playbackUrl = `/api/hls-proxy?url=${encodeURIComponent(url)}`;
+
     if (url.includes(".m3u8")) {
       const Hls = (await import("hls.js")).default;
       if (Hls.isSupported()) {
         const hls = new Hls();
-        hls.loadSource(url);
+        hls.loadSource(playbackUrl);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           video.play().catch(() => undefined);
@@ -378,8 +383,13 @@ export default function Home() {
         hlsRef.current = hls;
         return;
       }
+      // Safari / iOS: native HLS via the proxied url.
+      video.src = playbackUrl;
+      video.play().catch(() => undefined);
+      return;
     }
-    video.src = url;
+    // Plain video file (mp4 etc.) — also proxied for CORS / Referer / range.
+    video.src = playbackUrl;
     video.play().catch(() => undefined);
   }, []);
 
