@@ -11,6 +11,15 @@ import type {
   VideoStream,
 } from "@/lib/types";
 
+// Minimal shape of the fatal error payload hls.js emits on Hls.Events.ERROR.
+interface HlsFatalError {
+  fatal?: boolean;
+  type?: string;
+  details?: string;
+  response?: { code?: number; text?: string };
+  networkDetails?: { status?: number };
+}
+
 const DEFAULT_CONFIG: AppConfig = {
   hostUrl: "https://aniworld.to/",
   site: "anime",
@@ -95,6 +104,7 @@ export default function Home() {
   const [videoError, setVideoError] = useState<string | null>(null);
   const [extractedUrl, setExtractedUrl] = useState<string | null>(null);
   const [iframeUrl, setIframeUrl] = useState<string | null>(null);
+  const [playerError, setPlayerError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -357,6 +367,7 @@ export default function Home() {
   const playStream = useCallback(async (url: string) => {
     setIframeUrl(null);
     setExtractedUrl(url); // keep the real url for display / "URL kopieren"
+    setPlayerError(null);
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
@@ -371,6 +382,14 @@ export default function Home() {
     // direct load fails. The proxy re-fetches server-side and adds CORS headers.
     const playbackUrl = `/api/hls-proxy?url=${encodeURIComponent(url)}`;
 
+    video.onerror = () => {
+      const code = video.error?.code;
+      setPlayerError(
+        `Player-Fehler (video.error code ${code ?? "?"}). ` +
+          "Der Stream ließ sich nicht abspielen.",
+      );
+    };
+
     if (url.includes(".m3u8")) {
       const Hls = (await import("hls.js")).default;
       if (Hls.isSupported()) {
@@ -379,6 +398,17 @@ export default function Home() {
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           video.play().catch(() => undefined);
+        });
+        // Surface fatal errors on screen instead of a silent black player,
+        // so we can see whether the proxy returns 403 / 502 / 504 etc.
+        hls.on(Hls.Events.ERROR, (_evt: unknown, data: HlsFatalError) => {
+          if (!data?.fatal) return;
+          const status = data.response?.code ?? data.networkDetails?.status;
+          setPlayerError(
+            `HLS-Fehler: ${data.type} / ${data.details}` +
+              (status ? ` (HTTP ${status})` : "") +
+              ". Prüfe /api/hls-proxy im Network-Tab.",
+          );
         });
         hlsRef.current = hls;
         return;
@@ -851,6 +881,7 @@ export default function Home() {
           error={videoError}
           extractedUrl={extractedUrl}
           iframeUrl={iframeUrl}
+          playerError={playerError}
           copied={copied}
           videoRef={videoRef}
           onClose={closeVideoModal}
@@ -899,6 +930,7 @@ function VideoModal({
   error,
   extractedUrl,
   iframeUrl,
+  playerError,
   copied,
   videoRef,
   onClose,
@@ -914,6 +946,7 @@ function VideoModal({
   error: string | null;
   extractedUrl: string | null;
   iframeUrl: string | null;
+  playerError: string | null;
   copied: boolean;
   videoRef: React.RefObject<HTMLVideoElement | null>;
   onClose: () => void;
@@ -1063,9 +1096,23 @@ function VideoModal({
                     <video
                       ref={videoRef}
                       controls
+                      playsInline
                       className="video-player"
                     ></video>
                   </div>
+                  {playerError && (
+                    <div
+                      className="form-help"
+                      style={{
+                        marginTop: "0.5rem",
+                        color: "#ff6b6b",
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      <i className="fa-solid fa-triangle-exclamation"></i>{" "}
+                      {playerError}
+                    </div>
+                  )}
                   <div className="stream-url-display">{extractedUrl}</div>
                 </div>
               )}
