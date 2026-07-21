@@ -994,8 +994,17 @@ function VideoModal({
                     </a>
                   </div>
                   <div className="player-container">
+                    {/*
+                      Sandbox WITHOUT allow-popups / allow-top-navigation:
+                      this is the only in-page mechanism that actually blocks
+                      the hoster's pop-up ads and forced redirects, while
+                      allow-scripts/allow-same-origin keep the video player
+                      itself working. If a hoster refuses to play under this,
+                      the user falls back to the "Im neuen Tab" link.
+                    */}
                     <iframe
                       src={iframeUrl}
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
                       allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
                       allowFullScreen
                       referrerPolicy="no-referrer"
