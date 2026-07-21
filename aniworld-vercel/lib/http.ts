@@ -76,6 +76,26 @@ export async function postForm(
   );
 }
 
+/**
+ * Follows redirects and returns the final URL (e.g. resolving an s.to/aniworld
+ * "/redirect/xxx" link to the actual hoster embed page). Only the final URL is
+ * used — the response body is discarded — so this does not bind any stream token
+ * to the server's IP; the browser re-loads the embed itself.
+ */
+export async function resolveFinalUrl(
+  url: string,
+  options?: RequestOptions,
+): Promise<string> {
+  const res = await fetch(url, buildInit({ method: "GET", redirect: "follow" }, options));
+  // Drain the body so the connection can be reused/closed cleanly.
+  try {
+    await res.arrayBuffer();
+  } catch {
+    /* ignore */
+  }
+  return res.url || url;
+}
+
 export class HttpRequestError extends Error {
   status: number;
   constructor(message: string, status: number) {

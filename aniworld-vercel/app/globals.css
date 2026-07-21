@@ -751,6 +751,14 @@ body {
     gap: 0.75rem;
 }
 
+.stream-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 .stream-item {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);

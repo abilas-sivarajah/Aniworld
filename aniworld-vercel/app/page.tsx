@@ -74,6 +74,7 @@ export default function Home() {
   const [videoDetails, setVideoDetails] = useState<VideoDetails | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [extractedUrl, setExtractedUrl] = useState<string | null>(null);
+  const [iframeUrl, setIframeUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -287,6 +288,7 @@ export default function Home() {
       setVideoDetails(null);
       setVideoError(null);
       setExtractedUrl(null);
+      setIframeUrl(null);
       setVideoLoading(true);
       try {
         const url = `/api/video-info?title=${encodeURIComponent(
@@ -310,6 +312,7 @@ export default function Home() {
 
   const closeVideoModal = useCallback(() => {
     setVideoModal(null);
+    setIframeUrl(null);
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
@@ -320,7 +323,36 @@ export default function Home() {
     }
   }, []);
 
+  // Resolve the hoster embed URL and play it in an iframe — streams directly
+  // from the hoster to the user (nothing runs through Vercel).
+  const openInPlayer = useCallback(
+    async (stream: VideoStream, setBusy: (b: boolean) => void) => {
+      setBusy(true);
+      try {
+        const res = await fetch(
+          `/api/resolve?url=${encodeURIComponent(stream.videoUrl)}`,
+        );
+        const data = await res.json();
+        const embedUrl: string = data.embedUrl || stream.videoUrl;
+        setExtractedUrl(null);
+        if (hlsRef.current) {
+          hlsRef.current.destroy();
+          hlsRef.current = null;
+        }
+        setIframeUrl(embedUrl);
+      } catch {
+        // Fall back to iframing the redirect link directly.
+        setExtractedUrl(null);
+        setIframeUrl(stream.videoUrl);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [],
+  );
+
   const playStream = useCallback(async (url: string) => {
+    setIframeUrl(null);
     setExtractedUrl(url);
     if (hlsRef.current) {
       hlsRef.current.destroy();
@@ -742,10 +774,12 @@ export default function Home() {
           details={videoDetails}
           error={videoError}
           extractedUrl={extractedUrl}
+          iframeUrl={iframeUrl}
           copied={copied}
           videoRef={videoRef}
           onClose={closeVideoModal}
           onExtract={extractStream}
+          onOpenInPlayer={openInPlayer}
           onCopy={() => {
             if (extractedUrl) {
               navigator.clipboard.writeText(extractedUrl);
@@ -788,10 +822,12 @@ function VideoModal({
   details,
   error,
   extractedUrl,
+  iframeUrl,
   copied,
   videoRef,
   onClose,
   onExtract,
+  onOpenInPlayer,
   onCopy,
 }: {
   episode: Media;
@@ -801,10 +837,12 @@ function VideoModal({
   details: VideoDetails | null;
   error: string | null;
   extractedUrl: string | null;
+  iframeUrl: string | null;
   copied: boolean;
   videoRef: React.RefObject<HTMLVideoElement | null>;
   onClose: () => void;
   onExtract: (stream: VideoStream, setBusy: (b: boolean) => void) => void;
+  onOpenInPlayer: (stream: VideoStream, setBusy: (b: boolean) => void) => void;
   onCopy: () => void;
 }) {
   return (
@@ -853,10 +891,56 @@ function VideoModal({
                   </p>
                 ) : (
                   details.streams.map((st, i) => (
-                    <StreamItem key={i} stream={st} onExtract={onExtract} />
+                    <StreamItem
+                      key={i}
+                      stream={st}
+                      onExtract={onExtract}
+                      onOpenInPlayer={onOpenInPlayer}
+                    />
                   ))
                 )}
               </div>
+
+              {iframeUrl && (
+                <div className="extracted-stream-box">
+                  <div className="stream-box-header">
+                    <span className="stream-box-title">
+                      <i className="fa-solid fa-tv"></i> Direkt-Player (Hoster)
+                    </span>
+                    <a
+                      className="btn btn-sm btn-secondary"
+                      href={iframeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <i className="fa-solid fa-up-right-from-square"></i> Im
+                      neuen Tab
+                    </a>
+                  </div>
+                  <div className="player-container">
+                    <iframe
+                      src={iframeUrl}
+                      allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                      allowFullScreen
+                      referrerPolicy="no-referrer"
+                      style={{
+                        width: "100%",
+                        aspectRatio: "16 / 9",
+                        border: 0,
+                        borderRadius: "var(--radius-sm)",
+                        background: "#000",
+                      }}
+                    ></iframe>
+                  </div>
+                  <p
+                    className="form-help"
+                    style={{ marginTop: "0.5rem" }}
+                  >
+                    Läuft direkt vom Hoster zu dir (nicht über Vercel). Falls es
+                    schwarz bleibt oder Werbung kommt: „Im neuen Tab" öffnen.
+                  </p>
+                </div>
+              )}
 
               {extractedUrl && (
                 <div className="extracted-stream-box">
@@ -901,11 +985,14 @@ function VideoModal({
 function StreamItem({
   stream,
   onExtract,
+  onOpenInPlayer,
 }: {
   stream: VideoStream;
   onExtract: (stream: VideoStream, setBusy: (b: boolean) => void) => void;
+  onOpenInPlayer: (stream: VideoStream, setBusy: (b: boolean) => void) => void;
 }) {
-  const [busy, setBusy] = useState(false);
+  const [busyPlay, setBusyPlay] = useState(false);
+  const [busyExtract, setBusyExtract] = useState(false);
   return (
     <div className="stream-item">
       <div className="stream-info">
@@ -915,21 +1002,39 @@ function StreamItem({
           {languageLabel(stream.language)}
         </span>
       </div>
-      <button
-        className="btn btn-sm btn-primary extract-btn"
-        disabled={busy}
-        onClick={() => onExtract(stream, setBusy)}
-      >
-        {busy ? (
-          <>
-            <i className="fa-solid fa-circle-notch fa-spin"></i> Extrahiere...
-          </>
-        ) : (
-          <>
-            <i className="fa-solid fa-play"></i> Extrahieren &amp; Abspielen
-          </>
-        )}
-      </button>
+      <div className="stream-actions">
+        <button
+          className="btn btn-sm btn-primary"
+          disabled={busyPlay}
+          onClick={() => onOpenInPlayer(stream, setBusyPlay)}
+        >
+          {busyPlay ? (
+            <>
+              <i className="fa-solid fa-circle-notch fa-spin"></i> Öffne...
+            </>
+          ) : (
+            <>
+              <i className="fa-solid fa-play"></i> Im Player öffnen
+            </>
+          )}
+        </button>
+        <button
+          className="btn btn-sm btn-secondary"
+          disabled={busyExtract}
+          title="Direkte Stream-URL extrahieren (z.B. für VLC)"
+          onClick={() => onExtract(stream, setBusyExtract)}
+        >
+          {busyExtract ? (
+            <>
+              <i className="fa-solid fa-circle-notch fa-spin"></i> Extrahiere...
+            </>
+          ) : (
+            <>
+              <i className="fa-solid fa-link"></i> Stream-URL
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
