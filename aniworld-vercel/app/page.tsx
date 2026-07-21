@@ -1162,6 +1162,30 @@ function LoginGate({ onSuccess }: { onSuccess: () => void }) {
           <button type="submit" className="btn btn-primary btn-block">
             <i className="fa-solid fa-right-to-bracket"></i> Anmelden
           </button>
+
+          <button
+            type="button"
+            className="btn btn-outline btn-block"
+            style={{ marginTop: "0.75rem" }}
+            onClick={async () => {
+              if (
+                !confirm(
+                  "Zugriffsschutz wirklich zurücksetzen? Das gespeicherte Passwort wird entfernt.",
+                )
+              )
+                return;
+              try {
+                await fetch("/api/auth/reset", { method: "POST" });
+              } catch {
+                /* ignore */
+              }
+              sessionStorage.removeItem("ss_auth_token");
+              window.location.reload();
+            }}
+          >
+            <i className="fa-solid fa-unlock"></i> Passwort vergessen? Zugriff
+            zurücksetzen
+          </button>
         </form>
       </div>
     </div>
