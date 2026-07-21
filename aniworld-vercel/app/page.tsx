@@ -440,6 +440,17 @@ export default function Home() {
     [playStream],
   );
 
+  useEffect(() => {
+    const originalOpen = window.open;
+    window.open = function (url) {
+      console.warn("[AdBlock Shield] Pop-up blockiert:", url);
+      return null;
+    };
+    return () => {
+      window.open = originalOpen;
+    };
+  }, []);
+
   const showLogout = authState === "ok" && Boolean(config.passwordHashSHA256);
 
   return (
@@ -455,6 +466,9 @@ export default function Home() {
           </div>
 
           <div className="nav-actions">
+            <span className="adblock-badge" title="Automatischer Popup- & Werbeblocker ist aktiv">
+              <i className="fa-solid fa-shield-halved"></i> AdBlock Aktiv
+            </span>
             <div
               className="url-indicator"
               title="Klicke hier, um die Website-URL zu ändern"
@@ -963,6 +977,7 @@ function VideoModal({
                   <div className="player-container">
                     <iframe
                       src={iframeUrl}
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
                       allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
                       allowFullScreen
                       referrerPolicy="no-referrer"

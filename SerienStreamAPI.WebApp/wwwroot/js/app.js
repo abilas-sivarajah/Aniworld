@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Automatic AdBlocker & Pop-up Shield
+    (function initAdBlockShield() {
+        const originalOpen = window.open;
+        window.open = function (url) {
+            console.warn("[AdBlock Shield] Pop-up blockiert:", url);
+            return null;
+        };
+    })();
+
     // State
     let config = {
         hostUrl: 'https://aniworld.to/',
