@@ -711,7 +711,8 @@ export default function Home() {
             </div>
 
             <div className="season-section">
-              <div className="season-tabs">
+              <div className="season-tabs-wrapper">
+                <div className="season-tabs">
                 {Array.from(
                   { length: series.seasonsCount },
                   (_, i) => i + 1,
@@ -739,6 +740,7 @@ export default function Home() {
                   </button>
                 )}
               </div>
+            </div>
 
               <div className="episodes-container">
                 <div className="episodes-header">
