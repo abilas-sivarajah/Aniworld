@@ -1108,9 +1108,277 @@ body {
     color: #fca5a5;
 }
 
+.stream-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 /* ==========================================================================
    MOBILE & TABLET RESPONSIVE DESIGN
    ========================================================================== */
+
+.season-tabs-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+}
+
+.season-tabs-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
+.season-tabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    width: max-content;
+    min-width: 100%;
+}
+
+@media (max-width: 900px) {
+    .container {
+        padding: 0 1rem;
+    }
+
+    .series-hero {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .series-poster {
+        max-width: 220px;
+        margin: 0 auto;
+    }
+
+    .series-details {
+        text-align: center;
+        align-items: center;
+    }
+
+    .series-meta {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .genre-list {
+        justify-content: center;
+    }
+
+    .cast-info {
+        text-align: left;
+    }
+}
+
+@media (max-width: 640px) {
+    /* Header & Navbar */
+    .app-header {
+        padding: 0.75rem 0;
+    }
+
+    .header-content {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .brand-logo {
+        font-size: 1.15rem;
+    }
+
+    .brand-badge {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.4rem;
+    }
+
+    .header-actions {
+        gap: 0.4rem;
+    }
+
+    .url-indicator {
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.75rem;
+        padding: 0.35rem 0.6rem;
+    }
+
+    /* Hero Section & Search */
+    .hero-section {
+        padding: 1.5rem 0 1.75rem 0;
+    }
+
+    .hero-title {
+        font-size: 1.6rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .search-box {
+        flex-direction: column;
+        gap: 0.5rem;
+        background: rgba(18, 21, 34, 0.95);
+        padding: 0.5rem;
+        border-radius: var(--radius-lg);
+    }
+
+    .search-box input {
+        padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+        font-size: 0.95rem;
+        width: 100%;
+    }
+
+    .search-box .btn-primary {
+        width: 100%;
+        padding: 0.75rem;
+        justify-content: center;
+    }
+
+    .search-dropdown {
+        position: absolute;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-height: 55vh;
+        z-index: 999;
+    }
+
+    /* Quick Tags */
+    .quick-tags {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        justify-content: center;
+    }
+
+    .quick-chip {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+    }
+
+    /* Series Banner & Details */
+    .series-card {
+        padding: 1.25rem 1rem;
+        border-radius: var(--radius-md);
+    }
+
+    .series-title {
+        font-size: 1.6rem;
+    }
+
+    .meta-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    .genre-tag {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.6rem;
+    }
+
+    .series-description {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    /* Episode & Search Result Grids */
+    .episodes-grid,
+    .search-results-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 0.65rem;
+    }
+
+    .episode-card,
+    .search-result-card {
+        padding: 0.75rem;
+    }
+
+    .episode-title,
+    .search-result-title {
+        font-size: 0.88rem;
+    }
+
+    /* Stream Hoster List & Items (Mobile Stack) */
+    .stream-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+        padding: 0.85rem 1rem;
+    }
+
+    .stream-info {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .stream-actions {
+        display: flex;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .stream-actions .btn {
+        flex: 1;
+        justify-content: center;
+        font-size: 0.8rem;
+        padding: 0.5rem 0.5rem;
+        white-space: nowrap;
+    }
+
+    .stream-box-header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .hash-input-group {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /* Modals & Overlays */
+    .modal-backdrop {
+        padding: 0.5rem;
+    }
+
+    .modal-card {
+        width: 95vw;
+        max-width: 95vw;
+        max-height: 90vh;
+        padding: 1.25rem 1rem;
+        border-radius: var(--radius-md);
+        box-sizing: border-box;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .modal-body {
+        overflow-x: hidden;
+    }
+
+    .modal-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .login-card {
+        width: 95vw;
+        max-width: 95vw;
+        padding: 1.75rem 1.25rem;
+    }
+
+    .url-preset-bar {
+        padding: 0.6rem;
+    }
+
+    .btn-preset-chip {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
+}
 
 .season-tabs-wrapper {
     overflow-x: auto;
