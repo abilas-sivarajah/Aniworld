@@ -12,8 +12,8 @@ export const CONFIG_COOKIE = "ss_config";
 /** Default config, seeded from env vars (mirrors the appsettings.json seed). */
 export function defaultConfig(): AppConfig {
   return normalizeConfig({
-    hostUrl: process.env.DEFAULT_HOST_URL || "https://s.to/",
-    site: process.env.DEFAULT_SITE || "serie",
+    hostUrl: process.env.DEFAULT_HOST_URL || "https://aniworld.to/",
+    site: process.env.DEFAULT_SITE || "anime",
     ignoreCertificateValidation: process.env.IGNORE_CERT === "true",
     passwordHashSHA256: process.env.PASSWORD_HASH_SHA256 || "",
   });
@@ -23,12 +23,12 @@ export function defaultConfig(): AppConfig {
 export function normalizeConfig(input: Partial<AppConfig>): AppConfig {
   let hostUrl =
     !input.hostUrl || !input.hostUrl.trim()
-      ? "https://s.to/"
+      ? "https://aniworld.to/"
       : input.hostUrl.trim();
   if (!hostUrl.endsWith("/")) hostUrl += "/";
 
   const site =
-    !input.site || !input.site.trim() ? "serie" : input.site.trim().toLowerCase();
+    !input.site || !input.site.trim() ? "anime" : input.site.trim().toLowerCase();
 
   return {
     hostUrl,

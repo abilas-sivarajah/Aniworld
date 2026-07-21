@@ -43,34 +43,7 @@ api.MapGet("/series", async (string title, SerienStreamService service, Cancella
     }
     catch (SeriesNotFoundException)
     {
-        // Try fallback options: if current is aniworld.to (anime), try s.to (serie) or vice versa
-        string currentHost = service.Config.HostUrl;
-        string currentSite = service.Config.Site;
-
-        string altHost = (currentHost.Contains("aniworld.to") || currentHost.Contains("anicloud.to")) ? "https://s.to/" : "https://aniworld.to/";
-        string altSite = currentSite.Contains("anime") ? "serie/stream" : "anime/stream";
-
-        // Try 1: Try alternate site on current host
-        try
-        {
-            var altClient1 = new SerienStreamClient(currentHost, altSite, service.Config.IgnoreCertificateValidation);
-            var series1 = await altClient1.GetSeriesAsync(title, ct);
-            service.UpdateConfig(new SerienStreamConfigModel { HostUrl = currentHost, Site = altSite, IgnoreCertificateValidation = service.Config.IgnoreCertificateValidation });
-            return Results.Ok(series1);
-        }
-        catch { }
-
-        // Try 2: Try alternate host and alternate site
-        try
-        {
-            var altClient2 = new SerienStreamClient(altHost, altSite, service.Config.IgnoreCertificateValidation);
-            var series2 = await altClient2.GetSeriesAsync(title, ct);
-            service.UpdateConfig(new SerienStreamConfigModel { HostUrl = altHost, Site = altSite, IgnoreCertificateValidation = service.Config.IgnoreCertificateValidation });
-            return Results.Ok(series2);
-        }
-        catch { }
-
-        return Results.NotFound(new { error = $"'{title}' wurde weder auf {currentHost} noch auf {altHost} gefunden. Bitte überprüfe den genauen Namen." });
+        return Results.NotFound(new { error = $"'{title}' wurde auf {service.Config.HostUrl} nicht gefunden. Bitte überprüfe den genauen Namen." });
     }
     catch (HttpRequestException ex)
     {
@@ -240,8 +213,8 @@ app.Run();
 // Configuration & Service Models
 public class SerienStreamConfigModel
 {
-    public string HostUrl { get; set; } = "https://s.to/";
-    public string Site { get; set; } = "serie";
+    public string HostUrl { get; set; } = "https://aniworld.to/";
+    public string Site { get; set; } = "anime/stream";
     public bool IgnoreCertificateValidation { get; set; } = false;
     public string PasswordHashSHA256 { get; set; } = "";
 }
@@ -267,8 +240,8 @@ public class SerienStreamService
         var configSection = configuration.GetSection("SerienStreamConfig");
         Config = new SerienStreamConfigModel
         {
-            HostUrl = configSection["HostUrl"] ?? "https://s.to/",
-            Site = configSection["Site"] ?? "serie",
+            HostUrl = configSection["HostUrl"] ?? "https://aniworld.to/",
+            Site = configSection["Site"] ?? "anime/stream",
             IgnoreCertificateValidation = bool.TryParse(configSection["IgnoreCertificateValidation"], out bool ignore) && ignore,
             PasswordHashSHA256 = configSection["PasswordHashSHA256"] ?? ""
         };
@@ -280,10 +253,10 @@ public class SerienStreamService
     {
         lock (_lock)
         {
-            Config.HostUrl = string.IsNullOrWhiteSpace(newConfig.HostUrl) ? "https://s.to/" : newConfig.HostUrl.Trim();
+            Config.HostUrl = string.IsNullOrWhiteSpace(newConfig.HostUrl) ? "https://aniworld.to/" : newConfig.HostUrl.Trim();
             if (!Config.HostUrl.EndsWith("/")) Config.HostUrl += "/";
 
-            Config.Site = string.IsNullOrWhiteSpace(newConfig.Site) ? "serie" : newConfig.Site.Trim().ToLowerInvariant();
+            Config.Site = string.IsNullOrWhiteSpace(newConfig.Site) ? "anime/stream" : newConfig.Site.Trim().ToLowerInvariant();
             Config.IgnoreCertificateValidation = newConfig.IgnoreCertificateValidation;
             Config.PasswordHashSHA256 = newConfig.PasswordHashSHA256?.Trim() ?? "";
 
@@ -319,13 +292,6 @@ public class SerienStreamService
     public async Task<SearchResultItem[]> SearchAsync(string keyword, CancellationToken ct = default)
     {
         var rawResults = await Client.SearchAsync(keyword, ct);
-        if (rawResults.Length == 0)
-        {
-            string fallbackHost = Config.HostUrl.Contains("aniworld.to") ? "https://s.to/" : "https://aniworld.to/";
-            string fallbackSite = Config.HostUrl.Contains("aniworld.to") ? "serie/stream" : "anime/stream";
-            var fallbackClient = new SerienStreamClient(fallbackHost, fallbackSite, Config.IgnoreCertificateValidation);
-            rawResults = await fallbackClient.SearchAsync(keyword, ct);
-        }
 
         List<SearchResultItem> filtered = new();
         foreach (var r in rawResults)

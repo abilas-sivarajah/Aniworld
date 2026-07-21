@@ -15,20 +15,7 @@ export async function GET(req: NextRequest) {
   const config = readConfig(req);
 
   try {
-    let results = await makeClient(config).search(keyword);
-
-    // Fallback to the sibling host if the configured one returns nothing.
-    if (results.length === 0) {
-      const usesAniworld = config.hostUrl.includes("aniworld.to");
-      const fallbackHost = usesAniworld ? "https://s.to/" : "https://aniworld.to/";
-      const fallbackSite = usesAniworld ? "serie/stream" : "anime/stream";
-      const fallbackClient = new SerienStreamClient(
-        fallbackHost,
-        fallbackSite,
-        config.ignoreCertificateValidation,
-      );
-      results = await fallbackClient.search(keyword);
-    }
+    const results = await makeClient(config).search(keyword);
 
     // Extra filtering performed by the original web app endpoint.
     const cleaned = results.filter((item) => !item.link.includes("/frage/"));

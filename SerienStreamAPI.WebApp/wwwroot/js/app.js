@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // State
     let config = {
-        hostUrl: 'https://s.to/',
-        site: 'serie',
+        hostUrl: 'https://aniworld.to/',
+        site: 'anime',
         ignoreCertificateValidation: false
     };
 

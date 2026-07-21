@@ -42,60 +42,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(series);
   } catch (err) {
     if (err instanceof SeriesNotFoundError) {
-      const currentHost = config.hostUrl;
-      const currentSite = config.site;
-
-      const altHost =
-        currentHost.includes("aniworld.to") || currentHost.includes("anicloud.to")
-          ? "https://s.to/"
-          : "https://aniworld.to/";
-      const altSite = currentSite.includes("anime")
-        ? "serie/stream"
-        : "anime/stream";
-
-      // Try 1: alternate site on current host.
-      try {
-        const series = await new SerienStreamClient(
-          currentHost,
-          altSite,
-          config.ignoreCertificateValidation,
-        ).getSeries(title);
-        return withUpdatedConfig(
-          series,
-          normalizeConfig({
-            hostUrl: currentHost,
-            site: altSite,
-            ignoreCertificateValidation: config.ignoreCertificateValidation,
-            passwordHashSHA256: config.passwordHashSHA256,
-          }),
-        );
-      } catch {
-        /* try next */
-      }
-
-      // Try 2: alternate host + alternate site.
-      try {
-        const series = await new SerienStreamClient(
-          altHost,
-          altSite,
-          config.ignoreCertificateValidation,
-        ).getSeries(title);
-        return withUpdatedConfig(
-          series,
-          normalizeConfig({
-            hostUrl: altHost,
-            site: altSite,
-            ignoreCertificateValidation: config.ignoreCertificateValidation,
-            passwordHashSHA256: config.passwordHashSHA256,
-          }),
-        );
-      } catch {
-        /* fall through to 404 */
-      }
-
       return NextResponse.json(
         {
-          error: `'${title}' wurde weder auf ${currentHost} noch auf ${altHost} gefunden. Bitte überprüfe den genauen Namen.`,
+          error: `'${title}' wurde auf ${config.hostUrl} nicht gefunden. Bitte überprüfe den genauen Namen.`,
         },
         { status: 404 },
       );
