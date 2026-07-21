@@ -1054,6 +1054,37 @@ function SettingsModal({
     config.ignoreCertificateValidation,
   );
   const [passwordHash, setPasswordHash] = useState(config.passwordHashSHA256);
+  const [addQuickBtn, setAddQuickBtn] = useState(false);
+
+  const [customPresets, setCustomPresets] = useState<
+    Array<{ url: string; site: string; label: string }>
+  >(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      return JSON.parse(localStorage.getItem("saved_quick_presets") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  const saveCustomPresets = (
+    list: Array<{ url: string; site: string; label: string }>,
+  ) => {
+    setCustomPresets(list);
+    localStorage.setItem("saved_quick_presets", JSON.stringify(list));
+  };
+
+  const removeCustomPreset = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = [...customPresets];
+    updated.splice(index, 1);
+    saveCustomPresets(updated);
+  };
+
+  const applyPreset = (targetUrl: string, targetSite: string) => {
+    setHostUrl(targetUrl);
+    if (targetSite) setSite(targetSite);
+  };
 
   const generateHash = async () => {
     const pwd = prompt(
@@ -1087,8 +1118,20 @@ function SettingsModal({
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            const trimmedUrl = hostUrl.trim();
+            if (addQuickBtn && trimmedUrl) {
+              if (!customPresets.some((p) => p.url === trimmedUrl)) {
+                const domainName = trimmedUrl
+                  .replace(/^https?:\/\//, "")
+                  .replace(/\/$/, "");
+                saveCustomPresets([
+                  ...customPresets,
+                  { url: trimmedUrl, site, label: domainName },
+                ]);
+              }
+            }
             onSave({
-              hostUrl: hostUrl.trim(),
+              hostUrl: trimmedUrl,
               site,
               ignoreCertificateValidation: ignoreCert,
               passwordHashSHA256: passwordHash.trim(),
@@ -1103,14 +1146,62 @@ function SettingsModal({
               <input
                 id="hostUrlInput"
                 type="url"
-                placeholder="https://s.to/ oder https://anicloud.to/"
+                placeholder="https://aniworld.to/ oder https://serienstream.to/"
                 value={hostUrl}
                 onChange={(e) => setHostUrl(e.target.value)}
                 required
               />
+
+              <div className="url-preset-bar">
+                <label className="checkbox-label save-preset-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={addQuickBtn}
+                    onChange={(e) => setAddQuickBtn(e.target.checked)}
+                  />
+                  <span>
+                    <i className="fa-solid fa-plus-circle"></i> Diese URL als Schnell-Button hinzufügen
+                  </span>
+                </label>
+                <div className="preset-buttons-wrapper">
+                  <button
+                    type="button"
+                    className={`btn-preset-chip ${hostUrl === "https://aniworld.to/" ? "active" : ""}`}
+                    onClick={() => applyPreset("https://aniworld.to/", "anime")}
+                    title="Zu AniWorld (https://aniworld.to/) wechseln"
+                  >
+                    <i className="fa-solid fa-dragon"></i> AniWorld
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn-preset-chip ${hostUrl === "https://serienstream.to/" ? "active" : ""}`}
+                    onClick={() => applyPreset("https://serienstream.to/", "serie")}
+                    title="Zu SerienStream.to (https://serienstream.to/) wechseln"
+                  >
+                    <i className="fa-solid fa-tv"></i> SerienStream.to
+                  </button>
+
+                  {customPresets.map((p, idx) => (
+                    <button
+                      key={p.url + idx}
+                      type="button"
+                      className={`btn-preset-chip ${hostUrl === p.url ? "active" : ""}`}
+                      onClick={() => applyPreset(p.url, p.site)}
+                      title={`Zu ${p.label || p.url} wechseln`}
+                    >
+                      <i className="fa-solid fa-bookmark"></i> {p.label}
+                      <i
+                        className="fa-solid fa-xmark btn-preset-remove"
+                        onClick={(e) => removeCustomPreset(idx, e)}
+                        title="Diesen Schnell-Button löschen"
+                      ></i>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <small className="form-help">
-                Du kannst hier jederzeit deine bevorzugte Domain eintragen (z.B.
-                https://s.to/, https://anicloud.to/ oder alternative Proxies).
+                Du kannst hier deine bevorzugte Domain eintragen oder auf einen Schnell-Button klicken.
               </small>
             </div>
 
