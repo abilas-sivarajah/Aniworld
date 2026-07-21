@@ -240,6 +240,77 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Quick URL Preset Elements
+    const addQuickBtnCheckbox = document.getElementById('addQuickBtnCheckbox');
+    const customQuickButtonsContainer = document.getElementById('customQuickButtons');
+    const presetButtonsWrapper = document.getElementById('presetButtonsWrapper');
+
+    function loadCustomPresets() {
+        try {
+            return JSON.parse(localStorage.getItem('saved_quick_presets') || '[]');
+        } catch {
+            return [];
+        }
+    }
+
+    function saveCustomPresets(presets) {
+        localStorage.setItem('saved_quick_presets', JSON.stringify(presets));
+    }
+
+    function renderCustomPresets() {
+        if (!customQuickButtonsContainer) return;
+        customQuickButtonsContainer.innerHTML = '';
+        const presets = loadCustomPresets();
+
+        presets.forEach((p, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-preset-chip';
+            btn.dataset.url = p.url;
+            btn.dataset.site = p.site;
+            btn.title = `Zu ${p.label || p.url} wechseln`;
+            
+            const domainName = p.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+            btn.innerHTML = `
+                <i class="fa-solid fa-bookmark"></i> ${escapeHtml(p.label || domainName)}
+                <i class="fa-solid fa-xmark btn-preset-remove" title="Dieser Schnell-Button löschen"></i>
+            `;
+
+            btn.querySelector('.btn-preset-remove').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const currentPresets = loadCustomPresets();
+                currentPresets.splice(index, 1);
+                saveCustomPresets(currentPresets);
+                renderCustomPresets();
+            });
+
+            btn.addEventListener('click', () => applyPreset(p.url, p.site, btn));
+            customQuickButtonsContainer.appendChild(btn);
+        });
+    }
+
+    function applyPreset(url, site, btnElem) {
+        if (hostUrlInput) hostUrlInput.value = url;
+        if (siteSelect && site) siteSelect.value = site;
+
+        if (presetButtonsWrapper) {
+            presetButtonsWrapper.querySelectorAll('.btn-preset-chip').forEach(b => b.classList.remove('active'));
+        }
+        if (btnElem) btnElem.classList.add('active');
+    }
+
+    if (presetButtonsWrapper) {
+        presetButtonsWrapper.querySelectorAll('.btn-preset-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const url = btn.dataset.url;
+                const site = btn.dataset.site || 'anime';
+                applyPreset(url, site, btn);
+            });
+        });
+    }
+
+    renderCustomPresets();
+
     // Settings Modal Handlers
     openSettingsBtn.addEventListener('click', openSettings);
     urlIndicator.addEventListener('click', openSettings);
@@ -259,9 +330,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     settingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const urlValue = hostUrlInput.value.trim();
+        const siteValue = siteSelect.value;
+
+        // Check if user wants to save this URL as a quick button
+        if (addQuickBtnCheckbox && addQuickBtnCheckbox.checked && urlValue) {
+            const presets = loadCustomPresets();
+            if (!presets.some(p => p.url === urlValue)) {
+                const domainName = urlValue.replace(/^https?:\/\//, '').replace(/\/$/, '');
+                presets.push({ url: urlValue, site: siteValue, label: domainName });
+                saveCustomPresets(presets);
+                renderCustomPresets();
+            }
+            addQuickBtnCheckbox.checked = false;
+        }
+
         const updatedConfig = {
-            hostUrl: hostUrlInput.value.trim(),
-            site: siteSelect.value,
+            hostUrl: urlValue,
+            site: siteValue,
             ignoreCertificateValidation: ignoreCertCheckbox.checked,
             passwordHashSHA256: passwordHashInput ? passwordHashInput.value.trim() : ''
         };

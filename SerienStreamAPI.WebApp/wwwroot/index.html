@@ -170,8 +170,26 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="hostUrlInput">Website Base-URL (SerienStream / AniWorld / Spiegel)</label>
-                        <input type="url" id="hostUrlInput" placeholder="https://s.to/ oder https://anicloud.to/" required>
-                        <small class="form-help">Du kannst hier jederzeit deine bevorzugte Domain eintragen (z.B. https://s.to/, https://anicloud.to/ oder alternative Proxies).</small>
+                        <input type="url" id="hostUrlInput" placeholder="https://aniworld.to/ oder https://s.to/" required>
+                        
+                        <!-- Quick URL Presets & Checkbox to Add Button -->
+                        <div class="url-preset-bar">
+                            <label class="checkbox-label save-preset-checkbox">
+                                <input type="checkbox" id="addQuickBtnCheckbox">
+                                <span><i class="fa-solid fa-plus-circle"></i> Diese URL als Schnell-Button hinzufügen</span>
+                            </label>
+                            <div class="preset-buttons-wrapper" id="presetButtonsWrapper">
+                                <button type="button" class="btn-preset-chip" data-url="https://aniworld.to/" data-site="anime" title="Zu AniWorld (https://aniworld.to/) wechseln">
+                                    <i class="fa-solid fa-dragon"></i> AniWorld
+                                </button>
+                                <button type="button" class="btn-preset-chip" data-url="https://s.to/" data-site="serie" title="Zu SerienStream (https://s.to/) wechseln">
+                                    <i class="fa-solid fa-tv"></i> SerienStream
+                                </button>
+                                <span id="customQuickButtons" class="custom-quick-buttons"></span>
+                            </div>
+                        </div>
+
+                        <small class="form-help">Du kannst hier deine bevorzugte Domain eintragen oder auf einen Schnell-Button klicken.</small>
                     </div>
 
                     <div class="form-group">
