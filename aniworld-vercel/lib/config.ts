@@ -6,6 +6,7 @@
 import type { NextRequest } from "next/server";
 import type { AppConfig } from "./types";
 import { SerienStreamClient } from "./serienstream";
+import { BurningSeriesClient } from "./burningseries";
 
 export const CONFIG_COOKIE = "ss_config";
 
@@ -62,11 +63,29 @@ export function serializeConfig(config: AppConfig): string {
 /** Adds the "/stream" suffix expected by the site path (mirrors InitializeClients). */
 export function normalizeSite(site: string): string {
   const s = site.trim().toLowerCase();
+  if (s === "bs" || s === "burningseries" || s === "bs.to") return "serie";
   return s.includes("stream") ? s : `${s}/stream`;
 }
 
 /** Builds a scraping client for a given config. */
-export function makeClient(config: AppConfig): SerienStreamClient {
+export function makeClient(config: AppConfig): SerienStreamClient | BurningSeriesClient {
+  const isBS =
+    config.site === "bs" ||
+    config.site === "burningseries" ||
+    config.hostUrl.includes("burning-series") ||
+    config.hostUrl.includes("bs.to");
+
+  if (isBS) {
+    return new BurningSeriesClient(
+      config.hostUrl,
+      "serie",
+      config.ignoreCertificateValidation,
+      config.useProxy,
+      config.proxyRegion,
+      config.proxyUrl,
+    );
+  }
+
   return new SerienStreamClient(
     config.hostUrl,
     normalizeSite(config.site),

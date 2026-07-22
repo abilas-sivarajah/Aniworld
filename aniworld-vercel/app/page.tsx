@@ -1335,6 +1335,14 @@ function SettingsModal({
                   >
                     <i className="fa-solid fa-tv"></i> SerienStream.to
                   </button>
+                  <button
+                    type="button"
+                    className={`btn-preset-chip ${hostUrl === "https://burning-series.io/" ? "active" : ""}`}
+                    onClick={() => applyPreset("https://burning-series.io/", "bs")}
+                    title="Zu Burning Series (https://burning-series.io/) wechseln"
+                  >
+                    <i className="fa-solid fa-fire"></i> Burning Series
+                  </button>
 
                   {customPresets.map((p, idx) => (
                     <button
@@ -1369,6 +1377,7 @@ function SettingsModal({
               >
                 <option value="serie">SerienStream (serie)</option>
                 <option value="anime">AniWorld / AniCloud (anime)</option>
+                <option value="bs">Burning Series (bs.to / burning-series.io)</option>
               </select>
             </div>
 
