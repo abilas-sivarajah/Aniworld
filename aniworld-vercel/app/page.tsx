@@ -368,25 +368,28 @@ export default function Home() {
     }
   }, []);
 
-  const playStream = useCallback(async (url: string) => {
+  const playStream = useCallback((url: string) => {
     setIframeUrl(null);
     setExtractedUrl(url); // keep the real url for display / "URL kopieren"
     setPlayerError(null);
+  }, []);
+
+  useEffect(() => {
+    if (!extractedUrl) return;
+
+    let isSubscribed = true;
+    const playbackUrl = `/api/hls-proxy?url=${encodeURIComponent(extractedUrl)}`;
+
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
     }
-    // Wait for the <video> element to mount.
-    await new Promise((r) => setTimeout(r, 0));
+
     const video = videoRef.current;
     if (!video) return;
 
-    // Play through the backend proxy: the hoster CDN blocks the browser via
-    // CORS / Referer and the signed token was minted for the backend, so a
-    // direct load fails. The proxy re-fetches server-side and adds CORS headers.
-    const playbackUrl = `/api/hls-proxy?url=${encodeURIComponent(url)}`;
-
     video.onerror = () => {
+      if (!isSubscribed) return;
       const code = video.error?.code;
       setPlayerError(
         `Player-Fehler (video.error code ${code ?? "?"}). ` +
@@ -394,38 +397,42 @@ export default function Home() {
       );
     };
 
-    if (url.includes(".m3u8")) {
-      const Hls = (await import("hls.js")).default;
-      if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(playbackUrl);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+    if (extractedUrl.includes(".m3u8")) {
+      import("hls.js").then(({ default: Hls }) => {
+        if (!isSubscribed) return;
+        if (Hls.isSupported()) {
+          const hls = new Hls();
+          hls.loadSource(playbackUrl);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            if (isSubscribed) {
+              video.play().catch(() => undefined);
+            }
+          });
+          hls.on(Hls.Events.ERROR, (_evt: unknown, data: HlsFatalError) => {
+            if (!data?.fatal || !isSubscribed) return;
+            const status = data.response?.code ?? data.networkDetails?.status;
+            setPlayerError(
+              `HLS-Fehler: ${data.type} / ${data.details}` +
+                (status ? ` (HTTP ${status})` : "") +
+                ". Prüfe /api/hls-proxy im Network-Tab.",
+            );
+          });
+          hlsRef.current = hls;
+        } else {
+          video.src = playbackUrl;
           video.play().catch(() => undefined);
-        });
-        // Surface fatal errors on screen instead of a silent black player,
-        // so we can see whether the proxy returns 403 / 502 / 504 etc.
-        hls.on(Hls.Events.ERROR, (_evt: unknown, data: HlsFatalError) => {
-          if (!data?.fatal) return;
-          const status = data.response?.code ?? data.networkDetails?.status;
-          setPlayerError(
-            `HLS-Fehler: ${data.type} / ${data.details}` +
-              (status ? ` (HTTP ${status})` : "") +
-              ". Prüfe /api/hls-proxy im Network-Tab.",
-          );
-        });
-        hlsRef.current = hls;
-        return;
-      }
-      // Safari / iOS: native HLS via the proxied url.
+        }
+      });
+    } else {
       video.src = playbackUrl;
       video.play().catch(() => undefined);
-      return;
     }
-    // Plain video file (mp4 etc.) — also proxied for CORS / Referer / range.
-    video.src = playbackUrl;
-    video.play().catch(() => undefined);
-  }, []);
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [extractedUrl]);
 
   // "Im Player öffnen": prefer the clean extraction → proxy player (same,
   // proven, ad-free path as the "Stream-URL" button). Only if extraction is not
